@@ -18,6 +18,11 @@ except ImportError:
 except Exception as e:
     print(f"[API] Ошибка загрузки .env: {e}")
 
+import os
+
+# Получаем порт из переменной окружения (для Railway/Render)
+PORT = int(os.getenv("PORT", 8080))
+
 app = FastAPI(title="Crypto MiniApp API", version="1.0.0")
 
 app.add_middleware(

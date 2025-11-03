@@ -6,4 +6,3 @@ redis
 numpy
 pandas
 python-dotenv
-

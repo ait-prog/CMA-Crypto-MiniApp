@@ -37,6 +37,7 @@ jobs:
         working-directory: ./web
         env:
           VITE_API: ${{ secrets.VITE_API || 'http://localhost:8080' }}
+          NODE_ENV: production
         run: npm run build
 
       - name: Setup Pages
