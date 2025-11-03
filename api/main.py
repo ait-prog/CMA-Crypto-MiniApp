@@ -123,11 +123,20 @@ def coins():
 
 @app.get("/price/{coin_id}")
 async def price(coin_id: str):
+    print(f"[API] /price/{coin_id} called - START")
     try:
-        print(f"[API] /price/{coin_id} called")
-        if not coingecko or not hasattr(coingecko, 'simple_price'):
-            print(f"[ERROR] CoinGecko service not available for price/{coin_id}")
+        print(f"[API] coingecko object: {coingecko}")
+        print(f"[API] coingecko type: {type(coingecko)}")
+        print(f"[API] hasattr(coingecko, 'simple_price'): {hasattr(coingecko, 'simple_price') if coingecko else False}")
+        
+        if not coingecko:
+            print(f"[ERROR] coingecko is None")
             raise HTTPException(500, "CoinGecko service not available")
+        
+        if not hasattr(coingecko, 'simple_price'):
+            print(f"[ERROR] CoinGecko service has no simple_price method")
+            raise HTTPException(500, "CoinGecko service not available")
+        
         print(f"[API] Fetching price for {coin_id}")
         try:
             data = await coingecko.simple_price(coin_id)
@@ -137,29 +146,42 @@ async def price(coin_id: str):
             import traceback
             traceback.print_exc()
             raise
-        if coin_id not in data:
-            print(f"[ERROR] Coin {coin_id} not found in response: {list(data.keys())}")
+        
+        if not data or coin_id not in data:
+            print(f"[ERROR] Coin {coin_id} not found in response: {list(data.keys()) if data else 'No data'}")
             raise HTTPException(404, "unknown coin")
+        
         d = data[coin_id]
         result = {"usd": d["usd"], "change_24h": d.get("usd_24h_change")}
         print(f"[API] Price result: {result}")
+        print(f"[API] /price/{coin_id} - SUCCESS")
         return result
     except HTTPException:
+        print(f"[API] /price/{coin_id} - HTTPException raised")
         raise
     except Exception as e:
-        print(f"[ERROR] Failed to get price for {coin_id}: {e}")
+        print(f"[ERROR] Failed to get price for {coin_id}: {type(e).__name__}: {e}")
         import traceback
         traceback.print_exc()
+        print(f"[API] /price/{coin_id} - ERROR")
         raise HTTPException(500, f"Error fetching price: {str(e)}")
 
 
 @app.get("/ohlc/{coin_id}")
 async def get_ohlc(coin_id: str, days: int = 30):
+    print(f"[API] /ohlc/{coin_id}?days={days} called - START")
     try:
-        print(f"[API] /ohlc/{coin_id}?days={days} called")
-        if not coingecko or not hasattr(coingecko, 'ohlc'):
-            print(f"[ERROR] CoinGecko service not available for ohlc/{coin_id}")
+        print(f"[API] coingecko object: {coingecko}")
+        print(f"[API] hasattr(coingecko, 'ohlc'): {hasattr(coingecko, 'ohlc') if coingecko else False}")
+        
+        if not coingecko:
+            print(f"[ERROR] coingecko is None")
             raise HTTPException(500, "CoinGecko service not available")
+        
+        if not hasattr(coingecko, 'ohlc'):
+            print(f"[ERROR] CoinGecko service has no ohlc method")
+            raise HTTPException(500, "CoinGecko service not available")
+        
         print(f"[API] Fetching OHLC for {coin_id}, days={days}")
         try:
             data = await coingecko.ohlc(coin_id, days)
@@ -169,21 +191,26 @@ async def get_ohlc(coin_id: str, days: int = 30):
             import traceback
             traceback.print_exc()
             raise
+        
         if not data or len(data) == 0:
             print(f"[ERROR] No OHLC data for {coin_id}")
             raise HTTPException(500, "No OHLC data available")
+        
         result = [
             {"t": row[0], "o": row[1], "h": row[2], "l": row[3], "c": row[4]}
             for row in data
         ]
         print(f"[API] OHLC result: {len(result)} rows")
+        print(f"[API] /ohlc/{coin_id} - SUCCESS")
         return result
     except HTTPException:
+        print(f"[API] /ohlc/{coin_id} - HTTPException raised")
         raise
     except Exception as e:
-        print(f"[ERROR] Failed to get OHLC for {coin_id}: {e}")
+        print(f"[ERROR] Failed to get OHLC for {coin_id}: {type(e).__name__}: {e}")
         import traceback
         traceback.print_exc()
+        print(f"[API] /ohlc/{coin_id} - ERROR")
         raise HTTPException(500, f"Error fetching OHLC: {str(e)}")
 
 
