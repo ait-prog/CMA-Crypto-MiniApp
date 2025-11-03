@@ -68,14 +68,15 @@ async def fetch_news(id: str, limit: int = 20):
             print(f"[News] Response status: {r.status_code}")
             print(f"[News] Response URL (after redirects): {r.url}")
             
-            # Проверяем, есть ли ошибка в ответе
-            if r.status_code == 200:
-                try:
-                    response_data = r.json()
-                    if isinstance(response_data, dict) and response_data.get("status") == "api_error":
-                        print(f"[News] API error in response: {response_data.get('info')}")
-                except:
-                    pass
+            # Проверяем, есть ли ошибка в ответе (даже если статус 200)
+            try:
+                response_data = r.json()
+                if isinstance(response_data, dict) and response_data.get("status") == "api_error":
+                    error_info = response_data.get('info', 'Unknown error')
+                    print(f"[News] API error in response (status={r.status_code}): {error_info}")
+                    return []  # Возвращаем пустой список при ошибке API
+            except Exception as e:
+                print(f"[News] Error parsing response JSON: {e}")
             
             if r.status_code != 200:
                 print(f"[News] Error response status: {r.status_code}")

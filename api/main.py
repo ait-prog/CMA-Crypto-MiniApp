@@ -5,8 +5,14 @@ from pathlib import Path
 
 # Импортируем сервисы с обработкой ошибок
 try:
+    print("[API] Starting service imports...")
     from services import coingecko, news as news_svc, indicators, llm4web3_client
     print("[API] Services imported successfully")
+    print(f"[API] coingecko: {coingecko}")
+    print(f"[API] coingecko.COINS: {len(coingecko.COINS) if hasattr(coingecko, 'COINS') else 'N/A'}")
+    print(f"[API] news_svc: {news_svc}")
+    print(f"[API] indicators: {indicators}")
+    print(f"[API] llm4web3_client: {llm4web3_client}")
 except Exception as e:
     print(f"[ERROR] Failed to import services: {e}")
     import traceback
@@ -18,6 +24,7 @@ except Exception as e:
     news_svc = None
     indicators = None
     llm4web3_client = None
+    print("[API] Using dummy services")
 
 # Загружаем переменные окружения из .env файла
 try:
