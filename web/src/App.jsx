@@ -18,6 +18,7 @@ export default function App() {
     const [analysis, setAnalysis] = useState(null);
     const [q, setQ] = useState("");
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         WebApp.ready();
@@ -25,7 +26,12 @@ export default function App() {
     }, []);
 
     useEffect(() => {
-        getCoins().then(setCoins);
+        getCoins()
+            .then(setCoins)
+            .catch((error) => {
+                console.error("Ошибка загрузки монет:", error);
+                setError(`Ошибка загрузки монет: ${error.message}`);
+            });
     }, []);
 
     useEffect(() => {
@@ -44,6 +50,7 @@ export default function App() {
                 setAnalysis(analysisData);
             } catch (error) {
                 console.error("Ошибка загрузки данных:", error);
+                setError(`Ошибка загрузки: ${error.message}`);
             } finally {
                 setLoading(false);
             }
@@ -61,6 +68,18 @@ export default function App() {
 
     return (
         <div style={{ padding: 12, fontFamily: "system-ui" }}>
+            {error && (
+                <div style={{ 
+                    padding: 12, 
+                    backgroundColor: "#fee", 
+                    border: "1px solid #fcc", 
+                    borderRadius: 6, 
+                    marginBottom: 12,
+                    color: "#c00"
+                }}>
+                    {error}
+                </div>
+            )}
             <div style={{ marginBottom: 12 }}>
                 <input
                     placeholder="Поиск: bitcoin / btc"

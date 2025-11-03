@@ -1,7 +1,10 @@
 // API URL: в продакшене используем переменную окружения или дефолтный URL
+// Для Telegram WebApp нужно использовать публичный URL, не localhost!
 const API = import.meta.env.VITE_API || (import.meta.env.PROD 
   ? "https://your-api-domain.com"  // Замените на ваш продакшен API URL
-  : "http://localhost:8081");
+  : (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+      ? "http://localhost:8081"  // Только для локальной разработки
+      : "https://your-api-domain.com"));  // Для Telegram нужно использовать публичный URL
 
 export async function getCoins() {
     return (await fetch(`${API}/coins`)).json();

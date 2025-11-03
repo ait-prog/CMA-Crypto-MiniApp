@@ -1,9 +1,24 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
+from pathlib import Path
 from services import coingecko, news as news_svc, indicators, llm4web3_client
 
-app = FastAPI(title="Crypto MiniApp API")
+# Загружаем переменные окружения из .env файла
+try:
+    from dotenv import load_dotenv
+    import os
+    # Ищем .env файл в корне проекта (на уровень выше)
+    env_path = Path(__file__).parent.parent / '.env'
+    load_dotenv(env_path)
+    print(f"[API] Загружен .env файл: {env_path.exists()}")
+    print(f"[API] CRYPTOPANIC_KEY: {'SET' if os.getenv('CRYPTOPANIC_KEY') else 'NOT SET'}")
+except ImportError:
+    print("[API] python-dotenv не установлен, используем системные переменные окружения")
+except Exception as e:
+    print(f"[API] Ошибка загрузки .env: {e}")
+
+app = FastAPI(title="Crypto MiniApp API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,

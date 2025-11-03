@@ -1,5 +1,16 @@
 import httpx
 import os
+from pathlib import Path
+
+# Загружаем переменные окружения из .env
+try:
+    from dotenv import load_dotenv
+    env_path = Path(__file__).parent.parent.parent / '.env'
+    load_dotenv(env_path)
+except ImportError:
+    pass
+except Exception:
+    pass
 
 BASE = "https://cryptopanic.com/api/v1/posts/"
 
@@ -21,28 +32,73 @@ SYMBOL_MAP = {
 
 async def fetch_news(id: str, limit: int = 20):
     curr = SYMBOL_MAP.get(id, "BTC")
+    
+    if not API_KEY:
+        print(f"[News] WARNING: CRYPTOPANIC_KEY не установлен!")
+        return []
+    
     params = {
         "auth_token": API_KEY,
         "currencies": curr,
-        "filter": "news",
+        "filter": "hot",  # Используем "hot" вместо "news" для получения новостей
         "public": "true",
     }
+    
+    print(f"[News] Fetching news for {id} (symbol: {curr})")
+    print(f"[News] API_KEY: {'SET' if API_KEY else 'NOT SET'}")
+    
     try:
-        async with httpx.AsyncClient(timeout=10) as c:
+        async with httpx.AsyncClient(timeout=15) as c:
+            print(f"[News] Request URL: {BASE}")
             r = await c.get(BASE, params=params)
-            r.raise_for_status()
-            data = r.json().get("results", [])[:limit]
-            return [
-                {
-                    "title": x["title"],
-                    "source": x["source"]["title"],
-                    "url": x["url"],
-                    "published_at": x["published_at"],
+            print(f"[News] Response status: {r.status_code}")
+            
+            if r.status_code != 200:
+                print(f"[News] Error response: {r.text[:500]}")
+                return []
+            
+            response_data = r.json()
+            print(f"[News] Response type: {type(response_data)}")
+            
+            if not isinstance(response_data, dict):
+                print(f"[News] Response is not a dict: {response_data}")
+                return []
+            
+            print(f"[News] Response keys: {list(response_data.keys())}")
+            data = response_data.get("results", [])
+            print(f"[News] Total results: {len(data)}")
+            
+            if not data:
+                print("[News] No results in response")
+                # Попробуем без фильтра
+                params_no_filter = {
+                    "auth_token": API_KEY,
+                    "currencies": curr,
+                    "public": "true",
                 }
-                for x in data
-            ]
+                r2 = await c.get(BASE, params=params_no_filter)
+                if r2.status_code == 200:
+                    response_data2 = r2.json()
+                    data = response_data2.get("results", [])
+                    print(f"[News] Results without filter: {len(data)}")
+            
+            result = []
+            for x in data[:limit]:
+                try:
+                    result.append({
+                        "title": x.get("title", "No title"),
+                        "source": x.get("source", {}).get("title", "Unknown") if isinstance(x.get("source"), dict) else "Unknown",
+                        "url": x.get("url", "#"),
+                        "published_at": x.get("published_at", ""),
+                    })
+                except Exception as e:
+                    print(f"[News] Error parsing news item: {e}")
+                    continue
+            
+            print(f"[News] Returning {len(result)} news items")
+            return result
     except Exception as e:
-        # Fallback: возвращаем пустой список если API недоступен
-        print(f"News API error: {e}")
+        print(f"[News] API error: {e}")
+        import traceback
+        traceback.print_exc()
         return []
-
