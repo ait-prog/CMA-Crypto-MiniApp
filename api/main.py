@@ -2,7 +2,22 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
 from pathlib import Path
-from services import coingecko, news as news_svc, indicators, llm4web3_client
+
+# Импортируем сервисы с обработкой ошибок
+try:
+    from services import coingecko, news as news_svc, indicators, llm4web3_client
+    print("[API] Services imported successfully")
+except Exception as e:
+    print(f"[ERROR] Failed to import services: {e}")
+    import traceback
+    traceback.print_exc()
+    # Создаем заглушки для тестирования
+    class DummyCoingecko:
+        COINS = []
+    coingecko = DummyCoingecko()
+    news_svc = None
+    indicators = None
+    llm4web3_client = None
 
 # Загружаем переменные окружения из .env файла
 try:
