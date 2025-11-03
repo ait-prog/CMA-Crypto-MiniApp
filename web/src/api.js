@@ -6,10 +6,10 @@ const getApiUrl = () => {
         return import.meta.env.VITE_API;
     }
     
-    // В продакшене (GitHub Pages) всегда используем публичный URL
+    // В продакшене (GitHub Pages) используем публичный URL Render
     if (import.meta.env.PROD) {
-        // Если не указан VITE_API, используем заглушку (пользователь должен задеплоить API)
-        return "https://your-api-domain.com";  // Замените на ваш продакшен API URL
+        // Если не указан VITE_API, используем дефолтный URL Render
+        return "https://cma-crypto-miniapp.onrender.com";
     }
     
     // В разработке проверяем hostname
@@ -19,9 +19,9 @@ const getApiUrl = () => {
         return "http://localhost:8081";
     }
     
-    // Если открыто из Telegram или другого домена - нужен публичный URL
-    console.warn("[API] Используется localhost, но приложение открыто не с localhost. Нужен публичный API URL!");
-    return "http://localhost:8081";  // Fallback, но не будет работать из Telegram
+    // Если открыто из Telegram или другого домена - используем публичный URL
+    console.warn("[API] Используется публичный API URL для Telegram");
+    return "https://cma-crypto-miniapp.onrender.com";
 };
 
 const API = getApiUrl();
