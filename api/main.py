@@ -60,24 +60,72 @@ def health():
 @app.get("/coins")
 def coins():
     try:
+        if not coingecko or not hasattr(coingecko, 'COINS'):
+            print("[WARNING] coingecko.COINS is not available, returning default list")
+            # Возвращаем дефолтный список монет
+            return [
+                {"id": "bitcoin", "symbol": "BTC", "name": "Bitcoin"},
+                {"id": "ethereum", "symbol": "ETH", "name": "Ethereum"},
+                {"id": "solana", "symbol": "SOL", "name": "Solana"},
+                {"id": "binancecoin", "symbol": "BNB", "name": "BNB"},
+                {"id": "ripple", "symbol": "XRP", "name": "XRP"},
+                {"id": "cardano", "symbol": "ADA", "name": "Cardano"},
+                {"id": "dogecoin", "symbol": "DOGE", "name": "Dogecoin"},
+                {"id": "avalanche-2", "symbol": "AVAX", "name": "Avalanche"},
+                {"id": "the-open-network", "symbol": "TON", "name": "TON"},
+                {"id": "tron", "symbol": "TRX", "name": "TRON"},
+            ]
+        if not coingecko.COINS:
+            print("[WARNING] coingecko.COINS is empty, returning default list")
+            return [
+                {"id": "bitcoin", "symbol": "BTC", "name": "Bitcoin"},
+                {"id": "ethereum", "symbol": "ETH", "name": "Ethereum"},
+                {"id": "solana", "symbol": "SOL", "name": "Solana"},
+                {"id": "binancecoin", "symbol": "BNB", "name": "BNB"},
+                {"id": "ripple", "symbol": "XRP", "name": "XRP"},
+                {"id": "cardano", "symbol": "ADA", "name": "Cardano"},
+                {"id": "dogecoin", "symbol": "DOGE", "name": "Dogecoin"},
+                {"id": "avalanche-2", "symbol": "AVAX", "name": "Avalanche"},
+                {"id": "the-open-network", "symbol": "TON", "name": "TON"},
+                {"id": "tron", "symbol": "TRX", "name": "TRON"},
+            ]
         return coingecko.COINS
     except Exception as e:
         print(f"[ERROR] Failed to get coins: {e}")
         import traceback
         traceback.print_exc()
-        raise HTTPException(500, f"Error loading coins: {str(e)}")
+        # Возвращаем дефолтный список вместо ошибки
+        return [
+            {"id": "bitcoin", "symbol": "BTC", "name": "Bitcoin"},
+            {"id": "ethereum", "symbol": "ETH", "name": "Ethereum"},
+            {"id": "solana", "symbol": "SOL", "name": "Solana"},
+            {"id": "binancecoin", "symbol": "BNB", "name": "BNB"},
+            {"id": "ripple", "symbol": "XRP", "name": "XRP"},
+            {"id": "cardano", "symbol": "ADA", "name": "Cardano"},
+            {"id": "dogecoin", "symbol": "DOGE", "name": "Dogecoin"},
+            {"id": "avalanche-2", "symbol": "AVAX", "name": "Avalanche"},
+            {"id": "the-open-network", "symbol": "TON", "name": "TON"},
+            {"id": "tron", "symbol": "TRX", "name": "TRON"},
+        ]
 
 
 @app.get("/price/{coin_id}")
 async def price(coin_id: str):
     try:
+        if not coingecko or not hasattr(coingecko, 'simple_price'):
+            raise HTTPException(500, "CoinGecko service not available")
         data = await coingecko.simple_price(coin_id)
         if coin_id not in data:
             raise HTTPException(404, "unknown coin")
         d = data[coin_id]
         return {"usd": d["usd"], "change_24h": d.get("usd_24h_change")}
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(500, str(e))
+        print(f"[ERROR] Failed to get price for {coin_id}: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(500, f"Error fetching price: {str(e)}")
 
 
 @app.get("/ohlc/{coin_id}")
