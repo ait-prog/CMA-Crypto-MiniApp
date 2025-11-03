@@ -12,7 +12,7 @@ except ImportError:
 except Exception:
     pass
 
-BASE = "https://cryptopanic.com/api/v1/posts/"
+BASE = "https://cryptopanic.com/api/v1/posts"
 
 API_KEY = os.getenv("CRYPTOPANIC_KEY", "")
 

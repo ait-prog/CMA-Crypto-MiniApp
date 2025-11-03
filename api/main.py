@@ -118,9 +118,13 @@ def coins():
 async def price(coin_id: str):
     try:
         if not coingecko or not hasattr(coingecko, 'simple_price'):
+            print(f"[ERROR] CoinGecko service not available for price/{coin_id}")
             raise HTTPException(500, "CoinGecko service not available")
+        print(f"[API] Fetching price for {coin_id}")
         data = await coingecko.simple_price(coin_id)
+        print(f"[API] Price data received: {data}")
         if coin_id not in data:
+            print(f"[ERROR] Coin {coin_id} not found in response")
             raise HTTPException(404, "unknown coin")
         d = data[coin_id]
         return {"usd": d["usd"], "change_24h": d.get("usd_24h_change")}
@@ -137,8 +141,11 @@ async def price(coin_id: str):
 async def get_ohlc(coin_id: str, days: int = 30):
     try:
         if not coingecko or not hasattr(coingecko, 'ohlc'):
+            print(f"[ERROR] CoinGecko service not available for ohlc/{coin_id}")
             raise HTTPException(500, "CoinGecko service not available")
+        print(f"[API] Fetching OHLC for {coin_id}, days={days}")
         data = await coingecko.ohlc(coin_id, days)
+        print(f"[API] OHLC data received, rows: {len(data) if data else 0}")
         return [
             {"t": row[0], "o": row[1], "h": row[2], "l": row[3], "c": row[4]}
             for row in data
@@ -170,15 +177,27 @@ async def news(coin_id: str, limit: int = 10):
 @app.post("/analysis/{coin_id}")
 async def get_analysis(coin_id: str):
     try:
+        print(f"[API] Starting analysis for {coin_id}")
         if not coingecko or not hasattr(coingecko, 'ohlc'):
+            print(f"[ERROR] CoinGecko service not available for analysis/{coin_id}")
             raise HTTPException(500, "CoinGecko service not available")
         
+        print(f"[API] Fetching OHLC data for analysis ({coin_id}, 90 days)")
         ohlc_data = await coingecko.ohlc(coin_id, 90)
+        print(f"[API] OHLC data received, rows: {len(ohlc_data) if ohlc_data else 0}")
+        
+        if not ohlc_data or len(ohlc_data) == 0:
+            print(f"[ERROR] No OHLC data for {coin_id}")
+            raise HTTPException(500, "No OHLC data available")
+        
         closes = pd.Series([x[4] for x in ohlc_data])
+        print(f"[API] Calculated closes series, length: {len(closes)}")
         
         if not indicators:
+            print(f"[ERROR] Indicators service not available")
             raise HTTPException(500, "Indicators service not available")
         
+        print(f"[API] Calculating metrics")
         metrics = {
             "rsi": indicators.rsi(closes, 14),
             "ma20": indicators.ma(closes, 20),
@@ -186,23 +205,31 @@ async def get_analysis(coin_id: str):
             "vol30": indicators.realized_vol(closes, 30),
             "dd30": indicators.max_drawdown(closes, 30),
         }
+        print(f"[API] Metrics calculated: {metrics}")
         
         nw = []
         if news_svc:
             try:
+                print(f"[API] Fetching news for analysis")
                 nw = await news_svc.fetch_news(coin_id, 5)
-            except:
+                print(f"[API] News fetched: {len(nw)} items")
+            except Exception as e:
+                print(f"[WARNING] News unavailable for analysis: {e}")
                 pass  # Новости не критичны
         
         llm = None
         if llm4web3_client:
             try:
+                print(f"[API] Calling LLM for analysis")
                 llm = await llm4web3_client.analyze_with_llm(coin_id, metrics, nw)
-            except:
+                print(f"[API] LLM analysis received")
+            except Exception as e:
+                print(f"[WARNING] LLM unavailable: {e}")
                 pass  # LLM не критичен
         
         # базовый сигнал MA
         signal = "bullish" if metrics["ma20"] > metrics["ma50"] else "bearish"
+        print(f"[API] Analysis complete, signal: {signal}")
         
         return {"metrics": metrics, "signal": signal, "llm": llm}
     except HTTPException:

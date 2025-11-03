@@ -17,22 +17,44 @@ COINS = [
 
 
 async def simple_price(id: str):
-    async with httpx.AsyncClient(timeout=10) as c:
-        r = await c.get(
-            f"{BASE}/simple/price",
-            params={"ids": id, "vs_currencies": "usd", "include_24hr_change": "true"}
-        )
-        r.raise_for_status()
-        return r.json()
+    try:
+        async with httpx.AsyncClient(timeout=15, follow_redirects=True) as c:
+            url = f"{BASE}/simple/price"
+            params = {"ids": id, "vs_currencies": "usd", "include_24hr_change": "true"}
+            print(f"[CoinGecko] Fetching price for {id}")
+            print(f"[CoinGecko] URL: {url}, params: {params}")
+            r = await c.get(url, params=params)
+            print(f"[CoinGecko] Response status: {r.status_code}")
+            r.raise_for_status()
+            data = r.json()
+            print(f"[CoinGecko] Price data received: {data}")
+            return data
+    except httpx.HTTPStatusError as e:
+        print(f"[CoinGecko] HTTP error: {e.response.status_code} - {e.response.text}")
+        raise
+    except Exception as e:
+        print(f"[CoinGecko] Error fetching price: {e}")
+        raise
 
 
 async def ohlc(id: str, days: int = 30):
-    async with httpx.AsyncClient(timeout=10) as c:
-        r = await c.get(
-            f"{BASE}/coins/{id}/ohlc",
-            params={"vs_currency": "usd", "days": days}
-        )
-        r.raise_for_status()
-        # формат: [timestamp, open, high, low, close]
-        return r.json()
+    try:
+        async with httpx.AsyncClient(timeout=15, follow_redirects=True) as c:
+            url = f"{BASE}/coins/{id}/ohlc"
+            params = {"vs_currency": "usd", "days": days}
+            print(f"[CoinGecko] Fetching OHLC for {id}, days={days}")
+            print(f"[CoinGecko] URL: {url}, params: {params}")
+            r = await c.get(url, params=params)
+            print(f"[CoinGecko] Response status: {r.status_code}")
+            r.raise_for_status()
+            data = r.json()
+            print(f"[CoinGecko] OHLC data received, rows: {len(data) if isinstance(data, list) else 'N/A'}")
+            # формат: [timestamp, open, high, low, close]
+            return data
+    except httpx.HTTPStatusError as e:
+        print(f"[CoinGecko] HTTP error: {e.response.status_code} - {e.response.text}")
+        raise
+    except Exception as e:
+        print(f"[CoinGecko] Error fetching OHLC: {e}")
+        raise
 
