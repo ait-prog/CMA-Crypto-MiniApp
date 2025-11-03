@@ -22,9 +22,12 @@ Render - отличная альтернатива Railway, бесплатный
 
 - **Name**: `crypto-api` (или любое название)
 - **Region**: `Frankfurt (EU)` или `Oregon (US)` (ближайший к вам)
-- **Branch**: `main`
-- **Root Directory**: `api` ⚠️ **ВАЖНО!**
-- **Runtime**: `Python 3`
+- **Branch**: `main` (это выпадающий список - выберите main)
+- **Root Directory**: ⚠️ **ВАЖНО!** Это ТЕКСТОВОЕ ПОЛЕ, не выпадающий список!
+  - Кликните на поле "Root Directory"
+  - **ВВЕДИТЕ вручную**: `api` (просто `api`, без кавычек, без слешей)
+  - НЕ выбирайте из списка, а введите текст!
+- **Runtime**: `Python 3` (выберите из списка)
 - **Build Command**: `pip install -r requirements.txt`
 - **Start Command**: `uvicorn main:app --host 0.0.0.0 --port $PORT`
 
