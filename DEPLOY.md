@@ -1,4 +1,4 @@
-# 🚀 Деплой на GitHub Pages
+#  Деплой на GitHub Pages
 
 ## Настройка GitHub Pages
 
