@@ -83,28 +83,48 @@ async def price(coin_id: str):
 @app.get("/ohlc/{coin_id}")
 async def get_ohlc(coin_id: str, days: int = 30):
     try:
+        if not coingecko or not hasattr(coingecko, 'ohlc'):
+            raise HTTPException(500, "CoinGecko service not available")
         data = await coingecko.ohlc(coin_id, days)
         return [
             {"t": row[0], "o": row[1], "h": row[2], "l": row[3], "c": row[4]}
             for row in data
         ]
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(500, str(e))
+        print(f"[ERROR] Failed to get OHLC for {coin_id}: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(500, f"Error fetching OHLC: {str(e)}")
 
 
 @app.get("/news/{coin_id}")
 async def news(coin_id: str, limit: int = 10):
     try:
+        if not news_svc:
+            print("[WARNING] news_svc is not available, returning empty list")
+            return []
         return await news_svc.fetch_news(coin_id, limit)
     except Exception as e:
-        raise HTTPException(500, str(e))
+        print(f"[ERROR] Failed to get news for {coin_id}: {e}")
+        import traceback
+        traceback.print_exc()
+        # Возвращаем пустой список вместо ошибки
+        return []
 
 
 @app.post("/analysis/{coin_id}")
 async def get_analysis(coin_id: str):
     try:
+        if not coingecko or not hasattr(coingecko, 'ohlc'):
+            raise HTTPException(500, "CoinGecko service not available")
+        
         ohlc_data = await coingecko.ohlc(coin_id, 90)
         closes = pd.Series([x[4] for x in ohlc_data])
+        
+        if not indicators:
+            raise HTTPException(500, "Indicators service not available")
         
         metrics = {
             "rsi": indicators.rsi(closes, 14),
@@ -114,13 +134,29 @@ async def get_analysis(coin_id: str):
             "dd30": indicators.max_drawdown(closes, 30),
         }
         
-        nw = await news_svc.fetch_news(coin_id, 5)
-        llm = await llm4web3_client.analyze_with_llm(coin_id, metrics, nw)
+        nw = []
+        if news_svc:
+            try:
+                nw = await news_svc.fetch_news(coin_id, 5)
+            except:
+                pass  # Новости не критичны
+        
+        llm = None
+        if llm4web3_client:
+            try:
+                llm = await llm4web3_client.analyze_with_llm(coin_id, metrics, nw)
+            except:
+                pass  # LLM не критичен
         
         # базовый сигнал MA
         signal = "bullish" if metrics["ma20"] > metrics["ma50"] else "bearish"
         
         return {"metrics": metrics, "signal": signal, "llm": llm}
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(500, str(e))
+        print(f"[ERROR] Failed to get analysis for {coin_id}: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(500, f"Error fetching analysis: {str(e)}")
 
