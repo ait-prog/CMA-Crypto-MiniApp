@@ -198,12 +198,30 @@ async def get_analysis(coin_id: str):
             raise HTTPException(500, "Indicators service not available")
         
         print(f"[API] Calculating metrics")
+        import math
+        
+        def safe_float(value):
+            """Преобразует недопустимые float значения в None для JSON"""
+            if value is None:
+                return None
+            if isinstance(value, (int, float)):
+                if math.isnan(value) or math.isinf(value):
+                    return None
+                return float(value)
+            return value
+        
+        rsi_val = indicators.rsi(closes, 14)
+        ma20_val = indicators.ma(closes, 20)
+        ma50_val = indicators.ma(closes, 50)
+        vol30_val = indicators.realized_vol(closes, 30)
+        dd30_val = indicators.max_drawdown(closes, 30)
+        
         metrics = {
-            "rsi": indicators.rsi(closes, 14),
-            "ma20": indicators.ma(closes, 20),
-            "ma50": indicators.ma(closes, 50),
-            "vol30": indicators.realized_vol(closes, 30),
-            "dd30": indicators.max_drawdown(closes, 30),
+            "rsi": safe_float(rsi_val),
+            "ma20": safe_float(ma20_val),
+            "ma50": safe_float(ma50_val),
+            "vol30": safe_float(vol30_val),
+            "dd30": safe_float(dd30_val),
         }
         print(f"[API] Metrics calculated: {metrics}")
         
@@ -221,14 +239,21 @@ async def get_analysis(coin_id: str):
         if llm4web3_client:
             try:
                 print(f"[API] Calling LLM for analysis")
-                llm = await llm4web3_client.analyze_with_llm(coin_id, metrics, nw)
+                # Передаем метрики без None для LLM
+                llm_metrics = {k: v for k, v in metrics.items() if v is not None}
+                llm = await llm4web3_client.analyze_with_llm(coin_id, llm_metrics, nw)
                 print(f"[API] LLM analysis received")
             except Exception as e:
                 print(f"[WARNING] LLM unavailable: {e}")
                 pass  # LLM не критичен
         
-        # базовый сигнал MA
-        signal = "bullish" if metrics["ma20"] > metrics["ma50"] else "bearish"
+        # базовый сигнал MA (с проверкой на None)
+        ma20 = metrics.get("ma20")
+        ma50 = metrics.get("ma50")
+        if ma20 is not None and ma50 is not None:
+            signal = "bullish" if ma20 > ma50 else "bearish"
+        else:
+            signal = "neutral"  # Если данные недоступны
         print(f"[API] Analysis complete, signal: {signal}")
         
         return {"metrics": metrics, "signal": signal, "llm": llm}
