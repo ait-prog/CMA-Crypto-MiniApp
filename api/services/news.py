@@ -30,9 +30,82 @@ SYMBOL_MAP = {
 }
 
 
+# Статичные новости для демо
+STATIC_NEWS = {
+    "bitcoin": [
+        {
+            "title": "This Is Crazy'—Elon Musk Issues Serious $38 Trillion U.S. 'Bankruptcy' Warning Amid Growing Bitcoin Price Crash Fears",
+            "source": "Forbes",
+            "url": "https://www.forbes.com/sites/billybambrough/2025/11/03/this-is-crazy-elon-musk-issues-serious-38-trillion-us-bankruptcy-warning-amid-growing-bitcoin-price-crash-fears/",
+            "published_at": "2025-11-03T08:19:00Z"
+        },
+        {
+            "title": "Bitcoin Price Surges Past $126,000 as Traders Brace for Federal Reserve Policy Shift",
+            "source": "CoinDesk",
+            "url": "https://www.coindesk.com/bitcoin-price-surge",
+            "published_at": "2025-11-02T10:00:00Z"
+        },
+        {
+            "title": "Institutional Investors Pour $2 Billion Into Bitcoin ETFs in October",
+            "source": "Bloomberg Crypto",
+            "url": "https://www.bloomberg.com/bitcoin-etf-inflows",
+            "published_at": "2025-11-01T14:30:00Z"
+        },
+        {
+            "title": "Bitcoin Mining Difficulty Hits All-Time High as Hash Rate Continues to Grow",
+            "source": "The Block",
+            "url": "https://www.theblock.co/bitcoin-mining-difficulty",
+            "published_at": "2025-10-31T09:15:00Z"
+        },
+        {
+            "title": "Major Banks Announce Bitcoin Custody Services for Institutional Clients",
+            "source": "Reuters",
+            "url": "https://www.reuters.com/bitcoin-custody-services",
+            "published_at": "2025-10-30T16:45:00Z"
+        }
+    ],
+    "ethereum": [
+        {
+            "title": "Ethereum 2.0 Staking Reaches 50 Million ETH Milestone",
+            "source": "Ethereum Foundation",
+            "url": "https://ethereum.org/eth2-staking-milestone",
+            "published_at": "2025-11-03T07:00:00Z"
+        },
+        {
+            "title": "Major DeFi Protocol Launches on Ethereum Layer 2",
+            "source": "DeFi Pulse",
+            "url": "https://defipulse.com/ethereum-l2-launch",
+            "published_at": "2025-11-02T12:00:00Z"
+        }
+    ],
+    "solana": [
+        {
+            "title": "Solana Network Processes Record 100 Million Transactions in 24 Hours",
+            "source": "Solana Foundation",
+            "url": "https://solana.org/record-transactions",
+            "published_at": "2025-11-03T06:00:00Z"
+        }
+    ]
+}
+
 async def fetch_news(id: str, limit: int = 20):
     curr = SYMBOL_MAP.get(id, "BTC")
     
+    # Используем статичные новости для демо
+    print(f"[News] Using static news for {id} (demo mode)")
+    static_news = STATIC_NEWS.get(id, [])
+    
+    if static_news:
+        result = static_news[:limit]
+        print(f"[News] Returning {len(result)} static news items for {id}")
+        return result
+    
+    # Если нет статичных новостей, возвращаем пустой список
+    print(f"[News] No static news available for {id}, returning empty list")
+    return []
+    
+    # Оригинальный код для API (закомментирован для демо)
+    """
     if not API_KEY:
         print(f"[News] WARNING: CRYPTOPANIC_KEY не установлен!")
         return []
