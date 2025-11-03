@@ -59,11 +59,17 @@ async def fetch_news(id: str, limit: int = 20):
             print(f"[News] Response status: {r.status_code}")
             
             if r.status_code != 200:
-                print(f"[News] Error response: {r.text[:500]}")
+                print(f"[News] Error response status: {r.status_code}")
+                print(f"[News] Error response body: {r.text[:500]}")
                 return []
             
-            response_data = r.json()
-            print(f"[News] Response type: {type(response_data)}")
+            try:
+                response_data = r.json()
+                print(f"[News] Response type: {type(response_data)}")
+            except Exception as e:
+                print(f"[News] Error parsing JSON: {e}")
+                print(f"[News] Response text: {r.text[:500]}")
+                return []
             
             if not isinstance(response_data, dict):
                 print(f"[News] Response is not a dict: {response_data}")
@@ -83,25 +89,36 @@ async def fetch_news(id: str, limit: int = 20):
                 }
                 r2 = await c.get(BASE, params=params_no_filter)
                 if r2.status_code == 200:
-                    response_data2 = r2.json()
-                    data = response_data2.get("results", [])
-                    print(f"[News] Results without filter: {len(data)}")
+                    try:
+                        response_data2 = r2.json()
+                        data = response_data2.get("results", [])
+                        print(f"[News] Results without filter: {len(data)}")
+                    except Exception as e:
+                        print(f"[News] Error parsing JSON (no filter): {e}")
+                        print(f"[News] Response text: {r2.text[:500]}")
+                        data = []
             
-            result = []
-            for x in data[:limit]:
-                try:
-                    result.append({
-                        "title": x.get("title", "No title"),
-                        "source": x.get("source", {}).get("title", "Unknown") if isinstance(x.get("source"), dict) else "Unknown",
-                        "url": x.get("url", "#"),
-                        "published_at": x.get("published_at", ""),
-                    })
-                except Exception as e:
-                    print(f"[News] Error parsing news item: {e}")
-                    continue
-            
-            print(f"[News] Returning {len(result)} news items")
-            return result
+                   result = []
+                   for x in data[:limit]:
+                       try:
+                           if not isinstance(x, dict):
+                               print(f"[News] Skipping invalid news item: {x}")
+                               continue
+                           result.append({
+                               "title": x.get("title", "No title"),
+                               "source": x.get("source", {}).get("title", "Unknown") if isinstance(x.get("source"), dict) else "Unknown",
+                               "url": x.get("url", "#"),
+                               "published_at": x.get("published_at", ""),
+                           })
+                       except Exception as e:
+                           print(f"[News] Error parsing news item: {e}")
+                           print(f"[News] Item data: {x}")
+                           continue
+                   
+                   print(f"[News] Returning {len(result)} news items")
+                   if len(result) == 0:
+                       print(f"[News] WARNING: No news items parsed from {len(data)} results")
+                   return result
     except Exception as e:
         print(f"[News] API error: {e}")
         import traceback
