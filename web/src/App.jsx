@@ -27,10 +27,18 @@ export default function App() {
 
     useEffect(() => {
         getCoins()
-            .then(setCoins)
+            .then((data) => {
+                console.log("[App] Coins loaded:", data);
+                setCoins(data);
+            })
             .catch((error) => {
-                console.error("Ошибка загрузки монет:", error);
-                setError(`Ошибка загрузки монет: ${error.message}`);
+                console.error("[App] Error loading coins:", error);
+                const errorMsg = error.message || "Неизвестная ошибка";
+                if (errorMsg.includes("NetworkError") || errorMsg.includes("Failed to fetch")) {
+                    setError(`Ошибка подключения к API. API может быть в режиме сна (Render free tier). Попробуйте обновить страницу через несколько секунд.`);
+                } else {
+                    setError(`Ошибка загрузки монет: ${errorMsg}`);
+                }
             });
     }, []);
 

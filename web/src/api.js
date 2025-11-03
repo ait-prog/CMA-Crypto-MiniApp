@@ -30,22 +30,102 @@ const API = getApiUrl();
 console.log("[API] Using API URL:", API);
 
 export async function getCoins() {
-    return (await fetch(`${API}/coins`)).json();
+    try {
+        const response = await fetch(`${API}/coins`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error("[API] Error fetching coins:", error);
+        throw error;
+    }
 }
 
 export async function getPrice(id) {
-    return (await fetch(`${API}/price/${id}`)).json();
+    try {
+        const response = await fetch(`${API}/price/${id}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error(`[API] Error fetching price for ${id}:`, error);
+        throw error;
+    }
 }
 
 export async function getOHLC(id, days = 30) {
-    return (await fetch(`${API}/ohlc/${id}?days=${days}`)).json();
+    try {
+        const response = await fetch(`${API}/ohlc/${id}?days=${days}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error(`[API] Error fetching OHLC for ${id}:`, error);
+        throw error;
+    }
 }
 
 export async function getNews(id) {
-    return (await fetch(`${API}/news/${id}`)).json();
+    try {
+        const response = await fetch(`${API}/news/${id}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error(`[API] Error fetching news for ${id}:`, error);
+        throw error;
+    }
 }
 
 export async function getAnalysis(id) {
-    return (await fetch(`${API}/analysis/${id}`, { method: "POST" })).json();
+    try {
+        const response = await fetch(`${API}/analysis/${id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error(`[API] Error fetching analysis for ${id}:`, error);
+        throw error;
+    }
 }
 
