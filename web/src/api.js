@@ -45,7 +45,14 @@ export async function getCoins() {
         return await response.json();
     } catch (error) {
         console.error("[API] Error fetching coins:", error);
-        throw error;
+        // Извлекаем более детальную информацию об ошибке
+        let errorMessage = error.message || "Неизвестная ошибка";
+        if (error instanceof TypeError && error.message.includes("fetch")) {
+            errorMessage = "Ошибка подключения к API. API может быть в режиме сна (Render free tier).";
+        } else if (error.message.includes("500")) {
+            errorMessage = `Ошибка сервера (500): ${error.message}`;
+        }
+        throw new Error(errorMessage);
     }
 }
 
@@ -65,7 +72,11 @@ export async function getPrice(id) {
         return await response.json();
     } catch (error) {
         console.error(`[API] Error fetching price for ${id}:`, error);
-        throw error;
+        let errorMessage = error.message || "Неизвестная ошибка";
+        if (error.message.includes("500")) {
+            errorMessage = `Ошибка сервера (500) при загрузке цены: ${error.message}`;
+        }
+        throw new Error(errorMessage);
     }
 }
 
@@ -85,7 +96,11 @@ export async function getOHLC(id, days = 30) {
         return await response.json();
     } catch (error) {
         console.error(`[API] Error fetching OHLC for ${id}:`, error);
-        throw error;
+        let errorMessage = error.message || "Неизвестная ошибка";
+        if (error.message.includes("500")) {
+            errorMessage = `Ошибка сервера (500) при загрузке графика: ${error.message}`;
+        }
+        throw new Error(errorMessage);
     }
 }
 
@@ -105,7 +120,9 @@ export async function getNews(id) {
         return await response.json();
     } catch (error) {
         console.error(`[API] Error fetching news for ${id}:`, error);
-        throw error;
+        // Новости не критичны, возвращаем пустой список
+        console.warn(`[API] News unavailable for ${id}, returning empty list`);
+        return [];
     }
 }
 
@@ -125,7 +142,11 @@ export async function getAnalysis(id) {
         return await response.json();
     } catch (error) {
         console.error(`[API] Error fetching analysis for ${id}:`, error);
-        throw error;
+        let errorMessage = error.message || "Неизвестная ошибка";
+        if (error.message.includes("500")) {
+            errorMessage = `Ошибка сервера (500) при загрузке анализа: ${error.message}`;
+        }
+        throw new Error(errorMessage);
     }
 }
 

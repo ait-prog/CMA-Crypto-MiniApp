@@ -63,7 +63,9 @@ export default function App() {
                 // Более детальное сообщение об ошибке
                 if (errorMsg.includes("NetworkError") || errorMsg.includes("Failed to fetch")) {
                     const apiUrl = import.meta.env.VITE_API || "https://cma-crypto-miniapp.onrender.com";
-                    setError(`Ошибка подключения к API: ${apiUrl}. Проверьте, что API доступен.`);
+                    setError(`Ошибка подключения к API: ${apiUrl}. API может быть в режиме сна (Render free tier). Попробуйте обновить страницу через несколько секунд.`);
+                } else if (errorMsg.includes("500")) {
+                    setError(`Ошибка сервера (500): ${errorMsg}. API может быть в режиме сна или есть проблема на сервере. Проверьте логи на Render.`);
                 } else {
                     setError(`Ошибка загрузки: ${errorMsg}`);
                 }

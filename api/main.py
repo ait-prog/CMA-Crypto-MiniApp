@@ -50,7 +50,12 @@ app.add_middleware(
 
 @app.get("/")
 def root():
-    return {"message": "Crypto MiniApp API", "version": "1.0.0", "endpoints": ["/healthz", "/coins", "/price/{coin_id}", "/ohlc/{coin_id}", "/news/{coin_id}", "/analysis/{coin_id}", "/docs"]}
+    return {
+        "message": "Crypto MiniApp API", 
+        "version": "1.0.0", 
+        "endpoints": ["/healthz", "/coins", "/price/{coin_id}", "/ohlc/{coin_id}", "/news/{coin_id}", "/analysis/{coin_id}", "/docs"],
+        "status": "ok"
+    }
 
 @app.get("/healthz")
 def health():
