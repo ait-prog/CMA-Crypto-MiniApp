@@ -230,19 +230,53 @@ async def get_analysis(coin_id: str):
         
         def safe_float(value):
             """Преобразует недопустимые float значения в None для JSON"""
-            if value is None:
-                return None
-            if isinstance(value, (int, float)):
-                if math.isnan(value) or math.isinf(value):
+            try:
+                if value is None:
                     return None
-                return float(value)
-            return value
+                if isinstance(value, (int, float)):
+                    if math.isnan(value) or math.isinf(value):
+                        print(f"[API] WARNING: Invalid float value detected: {value}, replacing with None")
+                        return None
+                    return float(value)
+                return value
+            except Exception as e:
+                print(f"[API] ERROR in safe_float: {e}, value: {value}")
+                return None
         
-        rsi_val = indicators.rsi(closes, 14)
-        ma20_val = indicators.ma(closes, 20)
-        ma50_val = indicators.ma(closes, 50)
-        vol30_val = indicators.realized_vol(closes, 30)
-        dd30_val = indicators.max_drawdown(closes, 30)
+        try:
+            rsi_val = indicators.rsi(closes, 14)
+            print(f"[API] RSI calculated: {rsi_val} (type: {type(rsi_val)})")
+        except Exception as e:
+            print(f"[API] ERROR calculating RSI: {e}")
+            rsi_val = None
+        
+        try:
+            ma20_val = indicators.ma(closes, 20)
+            print(f"[API] MA20 calculated: {ma20_val} (type: {type(ma20_val)})")
+        except Exception as e:
+            print(f"[API] ERROR calculating MA20: {e}")
+            ma20_val = None
+        
+        try:
+            ma50_val = indicators.ma(closes, 50)
+            print(f"[API] MA50 calculated: {ma50_val} (type: {type(ma50_val)})")
+        except Exception as e:
+            print(f"[API] ERROR calculating MA50: {e}")
+            ma50_val = None
+        
+        try:
+            vol30_val = indicators.realized_vol(closes, 30)
+            print(f"[API] VOL30 calculated: {vol30_val} (type: {type(vol30_val)})")
+        except Exception as e:
+            print(f"[API] ERROR calculating VOL30: {e}")
+            vol30_val = None
+        
+        try:
+            dd30_val = indicators.max_drawdown(closes, 30)
+            print(f"[API] DD30 calculated: {dd30_val} (type: {type(dd30_val)})")
+        except Exception as e:
+            print(f"[API] ERROR calculating DD30: {e}")
+            dd30_val = None
         
         metrics = {
             "rsi": safe_float(rsi_val),
@@ -251,7 +285,14 @@ async def get_analysis(coin_id: str):
             "vol30": safe_float(vol30_val),
             "dd30": safe_float(dd30_val),
         }
-        print(f"[API] Metrics calculated: {metrics}")
+        print(f"[API] Metrics after safe_float: {metrics}")
+        
+        # Дополнительная проверка перед возвратом
+        for key, value in metrics.items():
+            if isinstance(value, float):
+                if math.isnan(value) or math.isinf(value):
+                    print(f"[API] WARNING: Found invalid float in metrics[{key}]: {value}, replacing with None")
+                    metrics[key] = None
         
         nw = []
         if news_svc:
@@ -271,6 +312,13 @@ async def get_analysis(coin_id: str):
                 llm_metrics = {k: v for k, v in metrics.items() if v is not None}
                 llm = await llm4web3_client.analyze_with_llm(coin_id, llm_metrics, nw)
                 print(f"[API] LLM analysis received")
+                # Проверяем LLM ответ на недопустимые значения
+                if isinstance(llm, dict):
+                    for key, value in llm.items():
+                        if isinstance(value, float):
+                            if math.isnan(value) or math.isinf(value):
+                                print(f"[API] WARNING: Invalid float in LLM response[{key}]: {value}")
+                                llm[key] = None
             except Exception as e:
                 print(f"[WARNING] LLM unavailable: {e}")
                 pass  # LLM не критичен
@@ -284,7 +332,27 @@ async def get_analysis(coin_id: str):
             signal = "neutral"  # Если данные недоступны
         print(f"[API] Analysis complete, signal: {signal}")
         
-        return {"metrics": metrics, "signal": signal, "llm": llm}
+        # Финальная проверка перед возвратом
+        result = {"metrics": metrics, "signal": signal, "llm": llm}
+        print(f"[API] Final result before return: metrics keys={list(result['metrics'].keys())}, signal={result['signal']}, llm={'present' if result['llm'] else 'None'}")
+        
+        # Проверяем каждое значение на недопустимые float
+        def clean_dict(d):
+            """Рекурсивно очищает словарь от недопустимых float значений"""
+            if isinstance(d, dict):
+                return {k: clean_dict(v) for k, v in d.items()}
+            elif isinstance(d, list):
+                return [clean_dict(item) for item in d]
+            elif isinstance(d, float):
+                if math.isnan(d) or math.isinf(d):
+                    return None
+                return d
+            return d
+        
+        result = clean_dict(result)
+        print(f"[API] Result after cleaning: {result}")
+        
+        return result
     except HTTPException:
         raise
     except Exception as e:
