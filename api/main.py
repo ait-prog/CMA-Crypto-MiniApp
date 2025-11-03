@@ -33,6 +33,10 @@ app.add_middleware(
 )
 
 
+@app.get("/")
+def root():
+    return {"message": "Crypto MiniApp API", "version": "1.0.0", "endpoints": ["/healthz", "/coins", "/price/{coin_id}", "/ohlc/{coin_id}", "/news/{coin_id}", "/analysis/{coin_id}", "/docs"]}
+
 @app.get("/healthz")
 def health():
     return {"ok": True}
@@ -40,7 +44,13 @@ def health():
 
 @app.get("/coins")
 def coins():
-    return coingecko.COINS
+    try:
+        return coingecko.COINS
+    except Exception as e:
+        print(f"[ERROR] Failed to get coins: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(500, f"Error loading coins: {str(e)}")
 
 
 @app.get("/price/{coin_id}")
