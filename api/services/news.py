@@ -39,6 +39,7 @@ async def fetch_news(id: str, limit: int = 20):
     
     # Developer план имеет ограничения: 24 часа задержка, 100 req/mo
     # Пробуем разные фильтры для получения новостей
+    # CryptoPanic API требует auth_token в параметрах запроса
     params = {
         "auth_token": API_KEY,
         "currencies": curr,
@@ -46,19 +47,35 @@ async def fetch_news(id: str, limit: int = 20):
         "public": "true",
     }
     
-    print(f"[News] API Key length: {len(API_KEY)}")
+    # Проверяем, что API_KEY действительно установлен
+    if not API_KEY or len(API_KEY) == 0:
+        print(f"[News] ERROR: API_KEY is empty or not set!")
+        return []
+    
+    print(f"[News] API Key length: {len(API_KEY) if API_KEY else 0}")
+    print(f"[News] API Key set: {bool(API_KEY)}")
+    print(f"[News] API Key preview: {API_KEY[:5]}..." if API_KEY and len(API_KEY) > 5 else "N/A")
     print(f"[News] Request params: currencies={curr}, filter=hot")
+    print(f"[News] Request params dict: auth_token={'SET' if params.get('auth_token') else 'MISSING'}, currencies={params.get('currencies')}, filter={params.get('filter')}")
     
     print(f"[News] Fetching news for {id} (symbol: {curr})")
-    print(f"[News] API_KEY: {'SET' if API_KEY else 'NOT SET'}")
     
     try:
         async with httpx.AsyncClient(timeout=15, follow_redirects=True) as c:
             print(f"[News] Request URL: {BASE}")
-            print(f"[News] Request params: {params}")
+            print(f"[News] Full request URL with params: {BASE}?auth_token={'***' if API_KEY else 'MISSING'}&currencies={curr}&filter=hot&public=true")
             r = await c.get(BASE, params=params)
             print(f"[News] Response status: {r.status_code}")
             print(f"[News] Response URL (after redirects): {r.url}")
+            
+            # Проверяем, есть ли ошибка в ответе
+            if r.status_code == 200:
+                try:
+                    response_data = r.json()
+                    if isinstance(response_data, dict) and response_data.get("status") == "api_error":
+                        print(f"[News] API error in response: {response_data.get('info')}")
+                except:
+                    pass
             
             if r.status_code != 200:
                 print(f"[News] Error response status: {r.status_code}")
