@@ -117,17 +117,26 @@ def coins():
 @app.get("/price/{coin_id}")
 async def price(coin_id: str):
     try:
+        print(f"[API] /price/{coin_id} called")
         if not coingecko or not hasattr(coingecko, 'simple_price'):
             print(f"[ERROR] CoinGecko service not available for price/{coin_id}")
             raise HTTPException(500, "CoinGecko service not available")
         print(f"[API] Fetching price for {coin_id}")
-        data = await coingecko.simple_price(coin_id)
-        print(f"[API] Price data received: {data}")
+        try:
+            data = await coingecko.simple_price(coin_id)
+            print(f"[API] Price data received: {data}")
+        except Exception as e:
+            print(f"[ERROR] CoinGecko API error for price/{coin_id}: {e}")
+            import traceback
+            traceback.print_exc()
+            raise
         if coin_id not in data:
-            print(f"[ERROR] Coin {coin_id} not found in response")
+            print(f"[ERROR] Coin {coin_id} not found in response: {list(data.keys())}")
             raise HTTPException(404, "unknown coin")
         d = data[coin_id]
-        return {"usd": d["usd"], "change_24h": d.get("usd_24h_change")}
+        result = {"usd": d["usd"], "change_24h": d.get("usd_24h_change")}
+        print(f"[API] Price result: {result}")
+        return result
     except HTTPException:
         raise
     except Exception as e:
@@ -140,16 +149,28 @@ async def price(coin_id: str):
 @app.get("/ohlc/{coin_id}")
 async def get_ohlc(coin_id: str, days: int = 30):
     try:
+        print(f"[API] /ohlc/{coin_id}?days={days} called")
         if not coingecko or not hasattr(coingecko, 'ohlc'):
             print(f"[ERROR] CoinGecko service not available for ohlc/{coin_id}")
             raise HTTPException(500, "CoinGecko service not available")
         print(f"[API] Fetching OHLC for {coin_id}, days={days}")
-        data = await coingecko.ohlc(coin_id, days)
-        print(f"[API] OHLC data received, rows: {len(data) if data else 0}")
-        return [
+        try:
+            data = await coingecko.ohlc(coin_id, days)
+            print(f"[API] OHLC data received, rows: {len(data) if data else 0}")
+        except Exception as e:
+            print(f"[ERROR] CoinGecko API error for ohlc/{coin_id}: {e}")
+            import traceback
+            traceback.print_exc()
+            raise
+        if not data or len(data) == 0:
+            print(f"[ERROR] No OHLC data for {coin_id}")
+            raise HTTPException(500, "No OHLC data available")
+        result = [
             {"t": row[0], "o": row[1], "h": row[2], "l": row[3], "c": row[4]}
             for row in data
         ]
+        print(f"[API] OHLC result: {len(result)} rows")
+        return result
     except HTTPException:
         raise
     except Exception as e:

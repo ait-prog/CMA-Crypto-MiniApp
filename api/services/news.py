@@ -54,11 +54,11 @@ async def fetch_news(id: str, limit: int = 20):
     
     try:
         async with httpx.AsyncClient(timeout=15, follow_redirects=True) as c:
-            full_url = f"{BASE}?auth_token={API_KEY[:5]}..."  # Не показываем полный ключ
             print(f"[News] Request URL: {BASE}")
-            print(f"[News] Full URL (partial): {full_url}")
+            print(f"[News] Request params: {params}")
             r = await c.get(BASE, params=params)
             print(f"[News] Response status: {r.status_code}")
+            print(f"[News] Response URL (after redirects): {r.url}")
             
             if r.status_code != 200:
                 print(f"[News] Error response status: {r.status_code}")
