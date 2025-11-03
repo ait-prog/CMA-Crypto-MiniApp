@@ -54,7 +54,8 @@ export default function App() {
                 
                 // Более детальное сообщение об ошибке
                 if (errorMsg.includes("NetworkError") || errorMsg.includes("Failed to fetch")) {
-                    setError(`Ошибка подключения к API. Проверьте, что API доступен по публичному URL. Текущий URL: ${import.meta.env.VITE_API || "не установлен"}`);
+                    const apiUrl = import.meta.env.VITE_API || "https://cma-crypto-miniapp.onrender.com";
+                    setError(`Ошибка подключения к API: ${apiUrl}. Проверьте, что API доступен.`);
                 } else {
                     setError(`Ошибка загрузки: ${errorMsg}`);
                 }
