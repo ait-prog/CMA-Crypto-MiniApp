@@ -50,7 +50,14 @@ export default function App() {
                 setAnalysis(analysisData);
             } catch (error) {
                 console.error("Ошибка загрузки данных:", error);
-                setError(`Ошибка загрузки: ${error.message}`);
+                const errorMsg = error.message || "Неизвестная ошибка";
+                
+                // Более детальное сообщение об ошибке
+                if (errorMsg.includes("NetworkError") || errorMsg.includes("Failed to fetch")) {
+                    setError(`Ошибка подключения к API. Проверьте, что API доступен по публичному URL. Текущий URL: ${import.meta.env.VITE_API || "не установлен"}`);
+                } else {
+                    setError(`Ошибка загрузки: ${errorMsg}`);
+                }
             } finally {
                 setLoading(false);
             }

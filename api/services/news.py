@@ -37,12 +37,17 @@ async def fetch_news(id: str, limit: int = 20):
         print(f"[News] WARNING: CRYPTOPANIC_KEY не установлен!")
         return []
     
+    # Developer план имеет ограничения: 24 часа задержка, 100 req/mo
+    # Пробуем разные фильтры для получения новостей
     params = {
         "auth_token": API_KEY,
         "currencies": curr,
-        "filter": "hot",  # Используем "hot" вместо "news" для получения новостей
+        "filter": "hot",  # Попробуем "hot" для получения популярных новостей
         "public": "true",
     }
+    
+    print(f"[News] API Key length: {len(API_KEY)}")
+    print(f"[News] Request params: currencies={curr}, filter=hot")
     
     print(f"[News] Fetching news for {id} (symbol: {curr})")
     print(f"[News] API_KEY: {'SET' if API_KEY else 'NOT SET'}")
