@@ -53,8 +53,10 @@ async def fetch_news(id: str, limit: int = 20):
     print(f"[News] API_KEY: {'SET' if API_KEY else 'NOT SET'}")
     
     try:
-        async with httpx.AsyncClient(timeout=15) as c:
+        async with httpx.AsyncClient(timeout=15, follow_redirects=True) as c:
+            full_url = f"{BASE}?auth_token={API_KEY[:5]}..."  # Не показываем полный ключ
             print(f"[News] Request URL: {BASE}")
+            print(f"[News] Full URL (partial): {full_url}")
             r = await c.get(BASE, params=params)
             print(f"[News] Response status: {r.status_code}")
             
@@ -87,6 +89,7 @@ async def fetch_news(id: str, limit: int = 20):
                     "currencies": curr,
                     "public": "true",
                 }
+                print(f"[News] Retrying without filter parameter")
                 r2 = await c.get(BASE, params=params_no_filter)
                 if r2.status_code == 200:
                     try:
