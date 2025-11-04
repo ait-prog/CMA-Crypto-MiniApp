@@ -15,27 +15,25 @@ export default function Chart({ data = [] }) {
 
         const chart = createChart(chartRef.current, {
             width: chartRef.current.clientWidth,
-            height: 320,
+            height: 360,
             layout: {
-                backgroundColor: "#ffffff",
-                textColor: "#333",
+                backgroundColor: "#07060a",
+                textColor: "#d1d5db",
             },
             grid: {
-                vertLines: {
-                    color: "#f0f0f0",
-                },
-                horzLines: {
-                    color: "#f0f0f0",
-                },
+                vertLines: { color: 'rgba(255,255,255,0.03)' },
+                horzLines: { color: 'rgba(255,255,255,0.03)' },
             },
+            timeScale: { borderColor: 'rgba(255,255,255,0.04)' },
+            crosshair: { vertLine: { color: 'rgba(255,255,255,0.02)' }, horzLine: { color: 'rgba(255,255,255,0.02)' } },
         });
 
         const series = chart.addCandlestickSeries({
-            upColor: "#26a69a",
-            downColor: "#ef5350",
+            upColor: "#4ade80",
+            downColor: "#ff6b6b",
             borderVisible: false,
-            wickUpColor: "#26a69a",
-            wickDownColor: "#ef5350",
+            wickUpColor: "#4ade80",
+            wickDownColor: "#ff6b6b",
         });
 
         const formattedData = data.map((d) => ({
@@ -70,9 +68,10 @@ export default function Chart({ data = [] }) {
     }, [data]);
 
     if (!data.length) {
-        return <div style={{ padding: 20, textAlign: "center" }}>Нет данных для графика</div>;
+        return <div className="p-6 text-center text-gray-400">Нет данных для графика</div>;
     }
 
-    return <div ref={chartRef} style={{ width: "100%", height: 320 }} />;
+    // responsive heights: compact on small screens, larger on md+
+    return <div ref={chartRef} className="w-full h-[220px] md:h-[360px] chart-dark" />;
 }
 

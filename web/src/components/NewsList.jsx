@@ -1,43 +1,22 @@
 export default function NewsList({ items = [] }) {
     if (!items.length) {
         return (
-            <div style={{ padding: 20, textAlign: "center", color: "#666" }}>
-                Новостей пока нет.
-            </div>
+            <div className="p-6 text-center text-gray-400">Новостей пока нет.</div>
         );
     }
 
     return (
-        <div style={{ display: "grid", gap: 12, marginTop: 10 }}>
+        <div className="grid gap-4 mt-2">
             {items.map((n, i) => (
                 <a
                     key={i}
                     href={n.url}
                     target="_blank"
                     rel="noreferrer"
-                    style={{
-                        border: "1px solid #eee",
-                        padding: 12,
-                        borderRadius: 8,
-                        textDecoration: "none",
-                        color: "inherit",
-                        display: "block",
-                        backgroundColor: "#fff",
-                        transition: "box-shadow 0.2s",
-                    }}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.1)";
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.boxShadow = "none";
-                    }}
+                    className="block p-4 rounded-lg glass-card hover:shadow-lg transition-shadow duration-150 text-gray-100"
                 >
-                    <div style={{ fontWeight: 600, marginBottom: 6, color: "#333" }}>
-                        {n.title}
-                    </div>
-                    <div style={{ fontSize: 12, opacity: 0.7, color: "#666" }}>
-                        {n.source} · {new Date(n.published_at).toLocaleString("ru-RU")}
-                    </div>
+                    <div className="font-semibold text-white mb-1">{n.title}</div>
+                    <div className="text-xs text-gray-400">{n.source} · {new Date(n.published_at).toLocaleString("ru-RU")}</div>
                 </a>
             ))}
         </div>
