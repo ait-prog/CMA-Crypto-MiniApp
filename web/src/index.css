@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root{
+  --accent-red: #ff2d2d;
+  --accent-red-600: #e11d2d;
+  --bg-900: #050507;
+  --panel: rgba(255,255,255,0.03);
+}
+
+/* Global page background with subtle animated gradient */
+body, #root {
+  height: 100%;
+}
+.app-bg {
+  background: radial-gradient(1200px 600px at 10% 10%, rgba(255,45,45,0.05), transparent 8%),
+              radial-gradient(1000px 400px at 90% 80%, rgba(255,45,45,0.03), transparent 6%),
+              linear-gradient(180deg, #030305 0%, #07060a 100%);
+}
+
+.glass-card{
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border: 1px solid rgba(255,255,255,0.04);
+  backdrop-filter: blur(6px) saturate(120%);
+}
+
+.accent-glow{
+  box-shadow: 0 6px 30px rgba(255,45,45,0.06), inset 0 1px 0 rgba(255,255,255,0.02);
+}
+
+.accent-border{
+  border-image: linear-gradient(90deg, rgba(255,45,45,0.0), rgba(255,45,45,0.35), rgba(255,45,45,0.0)) 1;
+}
+
+/* Subtle floating particles using pseudo-element on header */
+.decorative-header{
+  position: relative;
+}
+.decorative-header::after{
+  content: "";
+  position: absolute;
+  right: -80px;
+  top: -30px;
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(circle at 20% 20%, rgba(255,45,45,0.06), transparent 20%),
+              radial-gradient(circle at 80% 80%, rgba(255,255,255,0.02), transparent 15%);
+  filter: blur(30px);
+  pointer-events: none;
+  transform: rotate(10deg);
+}
+
+.sparkle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: var(--accent-red);
+  border-radius: 50%;
+  opacity: 0.08;
+  box-shadow: 0 0 18px rgba(255,45,45,0.6);
+  animation: float 6s linear infinite;
+}
+
+@keyframes float{
+  0%{ transform: translateY(0) translateX(0) }
+  50%{ transform: translateY(-12px) translateX(6px) }
+  100%{ transform: translateY(0) translateX(0) }
+}
+
+/* Make lightweight-charts container inherit dark bg */
+.chart-dark .tv-lightweight-charts {
+  background: transparent !important;
+}

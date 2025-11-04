@@ -1,108 +1,38 @@
 function Card({ label, value }) {
     return (
-        <div
-            style={{
-                border: "1px solid #eee",
-                padding: 12,
-                borderRadius: 8,
-                backgroundColor: "#fff",
-            }}
-        >
-            <div style={{ opacity: 0.7, fontSize: 12, marginBottom: 4 }}>{label}</div>
-            <div style={{ fontSize: 18, fontWeight: 600 }}>{value}</div>
+        <div className="p-3 rounded-lg glass-card">
+            <div className="text-xs text-gray-400 mb-1">{label}</div>
+            <div className="text-lg font-semibold text-white">{value}</div>
         </div>
     );
 }
 
 export default function RiskPanel({ analysis }) {
     if (!analysis) {
-        return <div style={{ padding: 20, textAlign: "center" }}>Загрузка...</div>;
+        return <div className="p-6 text-center text-gray-400">Загрузка...</div>;
     }
 
     const { metrics, signal, llm } = analysis;
 
-    const signalColor = signal === "bullish" ? "#28a745" : "#dc3545";
-    const rsiColor =
-        metrics.rsi > 70
-            ? "#dc3545"
-            : metrics.rsi < 30
-            ? "#ffc107"
-            : "#28a745";
+    const signalColor = signal === "bullish" ? 'text-green-400' : 'text-red-400';
+
+    const rsiColor = metrics.rsi > 70 ? 'text-red-400' : metrics.rsi < 30 ? 'text-yellow-400' : 'text-green-400';
 
     return (
-        <div style={{ marginTop: 10 }}>
-            <div
-                style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: 10,
-                    marginBottom: 16,
-                }}
-            >
-                <Card
-                    label="RSI(14)"
-                    value={
-                        <span style={{ color: rsiColor }}>
-                            {metrics.rsi?.toFixed(1)}
-                        </span>
-                    }
-                />
-                <Card
-                    label="MA20 / MA50"
-                    value={`$${metrics.ma20?.toFixed(2)} / $${metrics.ma50?.toFixed(2)}`}
-                />
-                <Card
-                    label="Vol(30d, ann.)"
-                    value={`${(metrics.vol30 * 100)?.toFixed(2)}%`}
-                />
-                <Card
-                    label="Max DD(30d)"
-                    value={
-                        <span style={{ color: "#dc3545" }}>
-                            {(metrics.dd30 * 100)?.toFixed(2)}%
-                        </span>
-                    }
-                />
-                <Card
-                    label="Сигнал MA"
-                    value={
-                        <span style={{ color: signalColor }}>
-                            {signal === "bullish" ? "📈 Бычий" : "📉 Медвежий"}
-                        </span>
-                    }
-                />
+        <div className="mt-2 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Card label="RSI(14)" value={<span className={rsiColor}>{metrics.rsi?.toFixed(1)}</span>} />
+                <Card label="MA20 / MA50" value={`$${metrics.ma20?.toFixed(2)} / $${metrics.ma50?.toFixed(2)}`} />
+                <Card label="Vol(30d, ann.)" value={`${(metrics.vol30 * 100)?.toFixed(2)}%`} />
+                <Card label="Max DD(30d)" value={<span className="text-red-400">{(metrics.dd30 * 100)?.toFixed(2)}%</span>} />
+                <Card label="Сигнал MA" value={<span className={signalColor}>{signal === 'bullish' ? '📈 Бычий' : '📉 Медвежий'}</span>} />
             </div>
-            <div
-                style={{
-                    marginTop: 12,
-                    padding: 16,
-                    border: "1px solid #eee",
-                    borderRadius: 8,
-                    backgroundColor: "#f8f9fa",
-                }}
-            >
-                <div style={{ fontWeight: 600, marginBottom: 8 }}>
-                    📊 LLM4Web3 Анализ:
-                </div>
-                <div style={{ lineHeight: 1.6, color: "#333" }}>
-                    {llm?.summary || "Анализ недоступен"}
-                </div>
+
+            <div className="p-4 rounded-lg glass-card">
+                <div className="font-semibold text-white mb-2">📊 LLM4Web3 Анализ:</div>
+                <div className="text-sm text-gray-300 leading-relaxed">{llm?.summary || 'Анализ недоступен'}</div>
                 {llm?.risk_level && (
-                    <div
-                        style={{
-                            marginTop: 8,
-                            padding: 6,
-                            borderRadius: 4,
-                            backgroundColor:
-                                llm.risk_level.includes("высокий")
-                                    ? "#fee"
-                                    : llm.risk_level.includes("низкий")
-                                    ? "#efe"
-                                    : "#fff9e6",
-                            fontSize: 12,
-                            fontWeight: 600,
-                        }}
-                    >
+                    <div className={`mt-3 inline-block px-3 py-1 rounded-md text-sm font-semibold ${llm.risk_level.includes('высокий') ? 'bg-red-800 text-red-200' : llm.risk_level.includes('низкий') ? 'bg-green-800 text-green-200' : 'bg-yellow-900 text-yellow-200'}`}>
                         Уровень риска: {llm.risk_level}
                     </div>
                 )}
